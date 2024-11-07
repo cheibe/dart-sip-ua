@@ -179,9 +179,9 @@ class SIPUAHelper extends EventManager {
     _settings.instance_id = uaSettings.instanceId;
     _settings.registrar_server = uaSettings.registrarServer;
     _settings.contact_uri = uaSettings.contact_uri;
-    _settings.connection_recovery_max_interval = 
+    _settings.connection_recovery_max_interval =
         uaSettings.connectionRecoveryMaxInterval;
-    _settings.connection_recovery_min_interval = 
+    _settings.connection_recovery_min_interval =
         uaSettings.connectionRecoveryMinInterval;
     _settings.terminateOnAudioMediaPortZero =
         uaSettings.terminateOnMediaPortZero;
@@ -254,6 +254,25 @@ class SIPUAHelper extends EventManager {
           SIPMessageRequest message =
               SIPMessageRequest(event.message, event.originator, event.request);
           _notifyNewMessageListeners(message);
+        }
+      });
+
+      _ua!.on(EventNewRTCSession(), (EventNewRTCSession event) {
+        logger.d('newRTCSession => $event');
+        RTCSession session = event.session!;
+        if (session.direction == 'incoming') {
+          // Definindo o estado da chamada como INCOMING
+          _calls[event.id] =
+              Call(event.id, session, CallStateEnum.INCOMING, false);
+          _notifyCallStateListeners(event, CallState(CallStateEnum.INCOMING));
+        } else {
+          bool hasVideo = session.data?['video'] ?? false;
+          _calls[event.id] =
+              Call(event.id, session, CallStateEnum.CALL_INITIATION, !hasVideo);
+          _notifyCallStateListeners(
+              event,
+              CallState(CallStateEnum.CALL_INITIATION,
+                  video: session.data?['video']));
         }
       });
 
@@ -518,6 +537,7 @@ enum CallStateEnum {
   HOLD,
   UNHOLD,
   CALL_INITIATION,
+  INCOMING,
 }
 
 class Call {
