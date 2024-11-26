@@ -31,9 +31,11 @@ class NonInviteServerTransaction extends TransactionBase {
   }
 
   void timer_J() {
-    logger.d('Timer J expired for transaction $id');
-    stateChanged(TransactionState.TERMINATED);
-    ua.destroyTransaction(this);
+    logger.d('Timer J ignore');
+    return;
+    // logger.d('Timer J expired for transaction $id');
+    // stateChanged(TransactionState.TERMINATED);
+    // ua.destroyTransaction(this);
   }
 
   @override
